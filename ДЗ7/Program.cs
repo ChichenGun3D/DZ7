@@ -1,45 +1,38 @@
 ﻿using System;
+using System.IO;
 
 class Program
 {
     static void Main(string[] args)
     {
-        int number = 42;
-        double d = 3.14;
-        DateTime date = DateTime.Now;
-        string str = "hello";
-        object obj = 123;
-        object nullObj = null;
-        Person person = new Person();
+        Console.Write("Введите имя исходного файла: ");
+        string inputFile = Console.ReadLine();
 
-        CheckFormattable(number);
-        CheckFormattable(d);
-        CheckFormattable(date);
-        CheckFormattable(str);
-        CheckFormattable(obj);
-        CheckFormattable(nullObj);
-        CheckFormattable(person);
+        if (!File.Exists(inputFile))
+        {
+            Console.WriteLine($"Файл '{inputFile}' не найден. Программа завершает работу.");
+            Console.ReadKey();
+            return;
+        }
+
+        Console.Write("Введите имя выходного файла: ");
+        string outputFile = Console.ReadLine();
+
+        try
+        {
+            string content = File.ReadAllText(inputFile);
+            File.WriteAllText(outputFile, content.ToUpper());
+            Console.WriteLine($"Готово! Содержимое записано в '{outputFile}' заглавными буквами.");
+        }
+        catch (IOException ex)
+        {
+            Console.WriteLine($"Ошибка при работе с файлом: {ex.Message}");
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            Console.WriteLine($"Нет доступа к файлу: {ex.Message}");
+        }
 
         Console.ReadKey();
     }
-
-    static void CheckFormattable(object obj)
-    {
-        if (obj is IFormattable)
-        {
-            IFormattable formattable = obj as IFormattable;
-            string formatted = formattable.ToString("G", null);
-            Console.WriteLine($"'{obj}' ({obj.GetType().Name}) реализует IFormattable. Формат 'G': {formatted}");
-        }
-        else
-        {
-            string typeName = obj == null ? "null" : obj.GetType().Name;
-            Console.WriteLine($"Объект ({typeName}) НЕ реализует IFormattable.");
-        }
-    }
-}
-
-class Person
-{
-    public string Name { get; set; } = "Иван";
 }
