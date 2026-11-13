@@ -1,90 +1,114 @@
 ﻿using System;
 using System.Collections.Generic;
 
-class Song
+// Базовый класс для всех сотрудников
+class Employee
 {
-    string name;
-    string author;
-    Song prev;
+    public string Name { get; set; }
+    public Employee Boss { get; set; } // Прямой руководитель
 
-    public void SetName(string name)
+    public Employee(string name, Employee boss = null)
     {
-        this.name = name;
+        Name = name;
+        Boss = boss;
     }
 
-    public void SetAuthor(string author)
+    // Метод для получения задачи
+    public void TakeTask(string taskName, Employee giver)
     {
-        this.author = author;
-    }
-
-    public void SetPrev(Song prev)
-    {
-        this.prev = prev;
-    }
-
-    public void Print()
-    {
-        Console.WriteLine("Песня: " + name + ", исполнитель: " + author);
-    }
-
-    public string Title()
-    {
-        return name + " - " + author;
-    }
-
-    public override bool Equals(object d)
-    {
-        Song other = d as Song;
-        if (other == null)
-            return false;
-        return this.name == other.name && this.author == other.author;
-    }
-
-    public override int GetHashCode()
-    {
-        return 0;
+        // Проверяем, является ли giver прямым руководителем (Boss)
+        if (this.Boss == giver)
+        {
+            Console.WriteLine($"Сотрудник {this.Name} БЕРЕТ задачу: «{taskName}» (от {giver.Name}).");
+        }
+        else
+        {
+            Console.WriteLine($"Сотрудник {this.Name} ОТКАЗЫВАЕТСЯ брать задачу: «{taskName}» (от {giver.Name}). Причина: не прямое руководство.");
+        }
     }
 }
 
 class Program
 {
+    // Категории для распределения задач
+    enum TaskType { Management, IT_Systems, IT_Developers }
+
     static void Main(string[] args)
     {
-        List<Song> songs = new List<Song>();
+        // 1. Строим иерархию (снизу вверх или сверху вниз)
 
-        for (int i = 0; i < 4; i++)
+        // Генеральный директор
+        Employee timur = new Employee("Тимур (Ген. директор)");
+
+        // Подчиненные Тимура
+        Employee rashid = new Employee("Рашид (Фин. директор)", timur);
+        Employee ilham = new Employee("О Ильхам (Директор по автоматизации)", timur);
+
+        // Бухгалтерия
+        Employee lukas = new Employee("Лукас (Гл. бухгалтер)", rashid);
+
+        // ИТ отдел (Начальство)
+        Employee orkady = new Employee("Оркадий (Начальник инф. систем)", ilham);
+        Employee volodya = new Employee("Володя (Зам. начальника)", ilham);
+
+        // Сектор системщиков
+        Employee ilshat = new Employee("Ильшат (Гл. системщик)", orkady); // Слушается Оркадия
+        Employee ivanych = new Employee("Иваныч (Зам. гл. системщика)", ilshat);
+        Employee ilya = new Employee("Илья (Системщик)", ivanych);
+        Employee vitya = new Employee("Витя (Системщик)", ivanych);
+        Employee zhenya = new Employee("Женя (Системщик)", ivanych);
+
+        // Сектор разработчиков
+        Employee sergey = new Employee("Сергей (Гл. разработчик)", orkady); // Слушается Оркадия
+        Employee lyaysan = new Employee("Ляйсан (Зам. гл. разработчика)", sergey);
+        Employee marat = new Employee("Марат (Разработчик)", lyaysan);
+        Employee dina = new Employee("Дина (Разработчик)", lyaysan);
+        Employee ildar = new Employee("Ильдар (Разработчик)", lyaysan);
+        Employee anton = new Employee("Антон (Разработчик)", lyaysan);
+
+        // 2. Создаем примитивные задачи
+        // Формат: Название задачи, Кому (Категория), От кого
+        var tasks = new List<Tuple<string, TaskType, Employee>>()
         {
-            Console.WriteLine($"--- Ввод песни №{i + 1} ---");
+            Tuple.Create("Настроить локальную сеть", TaskType.IT_Systems, orkady),
+            Tuple.Create("Разработать модуль 1С", TaskType.IT_Developers, volodya),
+            Tuple.Create("Автоматизация бухгалтерии", TaskType.IT_Developers, ilham),
+            Tuple.Create("Сдать отчет за квартал", TaskType.Management, rashid)
+        };
 
-            Song song = new Song();
+        // 3. Распределяем задачи
+        Console.WriteLine("=== РАСПРЕДЕЛЕНИЕ ЗАДАЧ ===\n");
 
-            Console.Write("Введите название песни: ");
-            song.SetName(Console.ReadLine());
+        foreach (var task in tasks)
+        {
+            string taskName = task.Item1;
+            TaskType type = task.Item2;
+            Employee giver = task.Item3;
 
-            Console.Write("Введите исполнителя: ");
-            song.SetAuthor(Console.ReadLine());
+            Console.WriteLine($"От {giver.Name} даётся задача «{taskName}»...");
 
-            if (i > 0)
+            if (type == TaskType.Management)
             {
-                song.SetPrev(songs[i - 1]);
+                // Задачи для начальства (например, Лукасу от Рашида)
+                lukas.TakeTask(taskName, giver);
             }
-
-            songs.Add(song);
+            else if (type == TaskType.IT_Systems)
+            {
+                // Даем задачу первому попавшемуся системщику (например, Илье)
+                ilya.TakeTask(taskName, giver);
+            }
+            else if (type == TaskType.IT_Developers)
+            {
+                // Даем задачу первому попавшемуся разработчику (например, Дине)
+                dina.TakeTask(taskName, giver);
+            }
             Console.WriteLine();
         }
 
-        Console.WriteLine("=== Список песен ===");
-        for (int i = 0; i < songs.Count; i++)
-        {
-            songs[i].Print();
-        }
-
-        Console.WriteLine();
-
-        if (songs[0].Equals(songs[1]))
-            Console.WriteLine("Песня 1 и песня 2 одинаковые");
-        else
-            Console.WriteLine("Песня 1 и песня 2 разные");
+        // Демонстрация нарушения субординации
+        Console.WriteLine("--- Проверка субординации ---");
+        Console.WriteLine("Попытка передать задачу через голову (Марат дает задачу Дине):");
+        dina.TakeTask("Помыть кофеварку", marat);
 
         Console.ReadKey();
     }
