@@ -4,23 +4,42 @@ class Program
 {
     static void Main(string[] args)
     {
-        Console.Write("Введите строку: ");
-        string input = Console.ReadLine();
+        int number = 42;
+        double d = 3.14;
+        DateTime date = DateTime.Now;
+        string str = "hello";
+        object obj = 123;
+        object nullObj = null;
+        Person person = new Person();
 
-        string reversed = ReverseString(input);
-        Console.WriteLine($"Исходная строка:  {input}");
-        Console.WriteLine($"Обратная строка:  {reversed}");
+        CheckFormattable(number);
+        CheckFormattable(d);
+        CheckFormattable(date);
+        CheckFormattable(str);
+        CheckFormattable(obj);
+        CheckFormattable(nullObj);
+        CheckFormattable(person);
 
         Console.ReadKey();
     }
 
-    static string ReverseString(string str)
+    static void CheckFormattable(object obj)
     {
-        if (string.IsNullOrEmpty(str))
-            return str;
-
-        char[] chars = str.ToCharArray();
-        Array.Reverse(chars);
-        return new string(chars);
+        if (obj is IFormattable)
+        {
+            IFormattable formattable = obj as IFormattable;
+            string formatted = formattable.ToString("G", null);
+            Console.WriteLine($"'{obj}' ({obj.GetType().Name}) реализует IFormattable. Формат 'G': {formatted}");
+        }
+        else
+        {
+            string typeName = obj == null ? "null" : obj.GetType().Name;
+            Console.WriteLine($"Объект ({typeName}) НЕ реализует IFormattable.");
+        }
     }
+}
+
+class Person
+{
+    public string Name { get; set; } = "Иван";
 }
