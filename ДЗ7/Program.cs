@@ -1,55 +1,91 @@
 ﻿using System;
-using System.IO;
+using System.Collections.Generic;
+
+class Song
+{
+    string name;
+    string author;
+    Song prev;
+
+    public void SetName(string name)
+    {
+        this.name = name;
+    }
+
+    public void SetAuthor(string author)
+    {
+        this.author = author;
+    }
+
+    public void SetPrev(Song prev)
+    {
+        this.prev = prev;
+    }
+
+    public void Print()
+    {
+        Console.WriteLine("Песня: " + name + ", исполнитель: " + author);
+    }
+
+    public string Title()
+    {
+        return name + " - " + author;
+    }
+
+    public override bool Equals(object d)
+    {
+        Song other = d as Song;
+        if (other == null)
+            return false;
+        return this.name == other.name && this.author == other.author;
+    }
+
+    public override int GetHashCode()
+    {
+        return 0;
+    }
+}
 
 class Program
 {
     static void Main(string[] args)
     {
-        Console.Write("Введите имя исходного файла: ");
-        string inputFile = Console.ReadLine();
+        List<Song> songs = new List<Song>();
 
-        if (!File.Exists(inputFile))
+        for (int i = 0; i < 4; i++)
         {
-            Console.WriteLine($"Файл '{inputFile}' не найден.");
-            Console.ReadKey();
-            return;
-        }
+            Console.WriteLine($"--- Ввод песни №{i + 1} ---");
 
-        Console.Write("Введите имя выходного файла: ");
-        string outputFile = Console.ReadLine();
+            Song song = new Song();
 
-        try
-        {
-            string[] lines = File.ReadAllLines(inputFile);
-            using (StreamWriter writer = new StreamWriter(outputFile))
+            Console.Write("Введите название песни: ");
+            song.SetName(Console.ReadLine());
+
+            Console.Write("Введите исполнителя: ");
+            song.SetAuthor(Console.ReadLine());
+
+            if (i > 0)
             {
-                foreach (string line in lines)
-                {
-                    string s = line;
-                    SearchMail(ref s);
-                    if (!string.IsNullOrEmpty(s))
-                        writer.WriteLine(s);
-                }
+                song.SetPrev(songs[i - 1]);
             }
-            Console.WriteLine($"Готово! Адреса записаны в '{outputFile}'.");
+
+            songs.Add(song);
+            Console.WriteLine();
         }
-        catch (IOException ex)
+
+        Console.WriteLine("=== Список песен ===");
+        for (int i = 0; i < songs.Count; i++)
         {
-            Console.WriteLine($"Ошибка: {ex.Message}");
+            songs[i].Print();
         }
+
+        Console.WriteLine();
+
+        if (songs[0].Equals(songs[1]))
+            Console.WriteLine("Песня 1 и песня 2 одинаковые");
+        else
+            Console.WriteLine("Песня 1 и песня 2 разные");
 
         Console.ReadKey();
-    }
-
-    public static void SearchMail(ref string s)
-    {
-        if (string.IsNullOrEmpty(s))
-            return;
-
-        int index = s.IndexOf('#');
-        if (index >= 0)
-            s = s.Substring(index + 1).Trim();
-        else
-            s = string.Empty;
     }
 }
