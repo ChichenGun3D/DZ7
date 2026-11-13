@@ -10,7 +10,7 @@ class Program
 
         if (!File.Exists(inputFile))
         {
-            Console.WriteLine($"Файл '{inputFile}' не найден. Программа завершает работу.");
+            Console.WriteLine($"Файл '{inputFile}' не найден.");
             Console.ReadKey();
             return;
         }
@@ -20,19 +20,36 @@ class Program
 
         try
         {
-            string content = File.ReadAllText(inputFile);
-            File.WriteAllText(outputFile, content.ToUpper());
-            Console.WriteLine($"Готово! Содержимое записано в '{outputFile}' заглавными буквами.");
+            string[] lines = File.ReadAllLines(inputFile);
+            using (StreamWriter writer = new StreamWriter(outputFile))
+            {
+                foreach (string line in lines)
+                {
+                    string s = line;
+                    SearchMail(ref s);
+                    if (!string.IsNullOrEmpty(s))
+                        writer.WriteLine(s);
+                }
+            }
+            Console.WriteLine($"Готово! Адреса записаны в '{outputFile}'.");
         }
         catch (IOException ex)
         {
-            Console.WriteLine($"Ошибка при работе с файлом: {ex.Message}");
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            Console.WriteLine($"Нет доступа к файлу: {ex.Message}");
+            Console.WriteLine($"Ошибка: {ex.Message}");
         }
 
         Console.ReadKey();
+    }
+
+    public static void SearchMail(ref string s)
+    {
+        if (string.IsNullOrEmpty(s))
+            return;
+
+        int index = s.IndexOf('#');
+        if (index >= 0)
+            s = s.Substring(index + 1).Trim();
+        else
+            s = string.Empty;
     }
 }
