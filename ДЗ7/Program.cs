@@ -14,7 +14,6 @@ class Program
         Console.ReadKey();
     }
 
-    // Метод, принимает string, возвращает string с буквами в обратном порядке
     static string ReverseString(string str)
     {
         if (string.IsNullOrEmpty(str))
